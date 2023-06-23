@@ -1,89 +1,41 @@
-name: Build bot
-
-on: [push, pull_request]
-
+name: Deploy
+on:
+  push:
+    tags:
+      - 'v*'
 jobs:
-  build-linux:
+  build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to DockerHub
-        if: github.repository == 'erebe/wstunnel'
-        uses: docker/login-action@v1
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Get the tag name
+        id: tagName
+        uses: olegtarasov/get-tag@v2.1.2
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
-
-          #      - name: wstunnel-builder-cache
-          #        id: docker_build_wstunnel-cache
-          #        uses: docker/build-push-action@v2
-          #        with:
-          #          push: true
-          #          tags: ghcr.io/erebe/wstunnel:builder-cache
-          #          target: builder-cache
-
-      - name: wstunnel
-        id: docker_build_wstunnel
-        uses: docker/build-push-action@v2
+          tagRegex: 'v(.*)'
+      - name: Authenticate with Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v0
         with:
-          push: ${{ github.repository == 'erebe/wstunnel' && github.ref == 'refs/heads/master' }}
-          tags: ghcr.io/erebe/wstunnel:latest
-       
-      - name: extract Artifact
-        run: |
-          docker cp $(docker create ghcr.io/erebe/wstunnel:latest /bin/sh -c 'sleep 5000'):/wstunnel .
-          ./wstunnel
-            
-      - uses: actions/upload-artifact@v1
+          token_format: access_token
+          workload_identity_provider: projects/637710599739/locations/global/workloadIdentityPools/github/providers/github
+          service_account: github@packets-compiler-prod.iam.gserviceaccount.com
+      - name: Login to Artifact Registry
+        uses: docker/login-action@v2
         with:
-          name: wstunnel-linux-x64
-          path: wstunnel
-          
-  build-windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v2
-      
-#    - name: Install stack
-#      run: |
-#        curl -sSL https://get.haskellstack.org/ | sh
-        
-    - name: Setup GHC
-      run: |
-        stack setup
-        
-    - name: Build
-      run: |
-        stack install
-        
-    - uses: actions/upload-artifact@v1
-      with:
-        name: wstunnel-windows-x64.exe
-        path: C:\Users\runneradmin\AppData\Roaming\local\bin\wstunnel.exe
-      
-      
-  build-macos:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v2
-      
-#    - name: Install stack
-#      run: |
-#        curl -sSL https://get.haskellstack.org/ | sh
-        
-    - name: Setup GHC
-      run: |
-        stack setup
-        
-    - name: Build
-      run: |
-        stack install
-        
-    - uses: actions/upload-artifact@v1
-      with:
-        name: wstunnel-macos
-        path: /Users/runner/.local/bin/wstunnel
+          registry: us-central1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+      - name: Build and Push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            us-central1-docker.pkg.dev/packets-compiler-prod/packets/wstunnel:${{ steps.tagName.outputs.tag }}
+            us-central1-docker.pkg.dev/packets-compiler-prod/packets/wstunnel:latest
