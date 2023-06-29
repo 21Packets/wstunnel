@@ -25,7 +25,7 @@ RUN echo '  ld-options: -static' >> wstunnel.cabal ; \
 # Final Image
 FROM alpine:latest as runner
 
-LABEL org.opencontainers.image.source https://github.com/erebe/server
+LABEL org.opencontainers.image.source=https://github.com/erebe/server
 
 COPY --from=builder /root/.local/bin/wstunnel /
 RUN adduser -D abc && chmod +x /wstunnel
@@ -33,5 +33,8 @@ RUN adduser -D abc && chmod +x /wstunnel
 USER abc
 WORKDIR /
 
-CMD ["/wstunnel"]
+COPY ./run.sh /run.sh
 
+RUN chmod +x /run.sh
+
+CMD ["./run.sh"]
