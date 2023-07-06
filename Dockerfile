@@ -23,17 +23,17 @@ RUN echo '  ld-options: -static' >> wstunnel.cabal ; \
 
 
 # Final Image
-FROM alpine:latest as runner
+FROM alpine:latest
 
 LABEL org.opencontainers.image.source=https://github.com/erebe/server
 
 COPY --from=builder /root/.local/bin/wstunnel /
 RUN chmod +x /wstunnel
 
-WORKDIR /scripts
+WORKDIR /
 
 COPY ./scripts/ /scripts/
 
 RUN chmod +x /scripts/*.sh
 
-CMD ["./run.sh"]
+CMD ["/scripts/run.sh"]
