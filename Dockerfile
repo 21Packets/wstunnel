@@ -27,7 +27,7 @@ FROM alpine:latest
 
 LABEL org.opencontainers.image.source=https://github.com/erebe/server
 
-COPY --from=builder /root/.local/bin/wstunnel/
+COPY --from=builder /root/.local/bin/wstunnel /
 RUN chmod +x /wstunnel
 
 WORKDIR /
