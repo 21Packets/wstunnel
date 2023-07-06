@@ -28,9 +28,8 @@ FROM alpine:latest as runner
 LABEL org.opencontainers.image.source=https://github.com/erebe/server
 
 COPY --from=builder /root/.local/bin/wstunnel /
-RUN adduser -D abc && chmod +x /wstunnel
+RUN chmod +x /wstunnel
 
-USER abc
 WORKDIR /scripts
 
 COPY ./scripts/ /scripts/
