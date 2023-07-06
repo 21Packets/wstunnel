@@ -1,3 +1,5 @@
+#!/bin/sh
+
 if [ -z $TUNNEL_CLIENT ]; then
   echo "Running wstunnel in server mode"
   /wstunnel --server -v "wss://${SERVER_ADDRESS}" --restrictTo "$RESTRICT_TO_ADDRESS"
