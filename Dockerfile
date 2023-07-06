@@ -31,10 +31,10 @@ COPY --from=builder /root/.local/bin/wstunnel /
 RUN adduser -D abc && chmod +x /wstunnel
 
 USER abc
-WORKDIR /
+WORKDIR /app
 
 COPY ./run.sh ./run.sh
 
-RUN sudo chmod +x ./run.sh
+RUN chmod +x ./run.sh
 
 CMD ["./run.sh"]
