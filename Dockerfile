@@ -33,8 +33,8 @@ RUN adduser -D abc && chmod +x /wstunnel
 USER abc
 WORKDIR /
 
-COPY ./run.sh /run.sh
+COPY ./run.sh ./run.sh
 
-RUN chmod +x /run.sh
+RUN sudo chmod +x ./run.sh
 
 CMD ["./run.sh"]
