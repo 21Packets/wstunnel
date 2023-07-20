@@ -32,4 +32,8 @@ RUN chmod +x /wstunnel
 
 WORKDIR /
 
-CMD ["/wstunnel"]
+COPY ./scripts/ /scripts/
+
+RUN chmod +x /scripts/*.sh
+
+CMD ["/scripts/run.sh"]
